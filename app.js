@@ -1,10 +1,10 @@
 const lessons = [
   {
     title: "Click the Button",
-    short: "First click",
+    short: "getByRole",
     time: "6 min",
     summary:
-      "Start with the most satisfying Playwright moment: open a page, find a button, click it, and verify the screen changed.",
+      "Open a page, find a button, click it, and verify the screen changed.",
     goal: "Use `page.getByRole()` to click a real button by its accessible name.",
     userAction:
       "In the Demo App, the user clicks the Start tour button. The button text should change to Tour started.",
@@ -92,6 +92,7 @@ test('opens the welcome message', async ({ page }) => {
       surface.querySelector('[data-action="start-tour"]').addEventListener("click", () => {
         demoState.clicked = true;
         renderDemo();
+        scheduleDemoResultReset();
       });
     },
     validate: state => state.clicked,
@@ -99,112 +100,126 @@ test('opens the welcome message', async ({ page }) => {
   },
   {
     title: "Fill the Form",
-    short: "Typing",
+    short: "getByLabel",
     time: "8 min",
     summary:
-      "Forms are where many tests begin. Practice labels, text inputs, and a submit flow that changes the UI.",
+      "Find labeled fields, fill login details, submit the form, and verify sign-in worked.",
     goal: "Fill fields by label and submit the form without depending on placeholder text.",
     userAction:
-      "The user types a name and email in the Demo App, then clicks Create trial.",
+      "The user types a username and password in the Gmail-style sign-in screen, then clicks Sign in.",
     playwrightAction:
       "The code uses labels to find the inputs, fills them, then clicks the submit button.",
     successCheck:
-      "Run test should pass when the status says Trial created.",
+      "Run test should pass when the status says Inbox ready.",
     conceptTitle: "Why `getByLabel()`?",
     conceptBody: [
-      { label: "Label", value: "Email", note: "The visible label attached to the input." },
-      { label: "Element", value: "email input", note: "The real field Playwright fills." },
+      { label: "Label", value: "Username", note: "The visible label attached to the input." },
+      { label: "Element", value: "username input", note: "The real field Playwright fills." },
       { label: "Action", value: "fill()", note: "Replaces the current input value." }
     ],
-    conceptCode: "page.getByLabel('Email').fill('ari@example.com')",
-    demoPath: "/signup",
-    demoTitle: "Signup form",
+    conceptCode: "page.getByLabel('Username').fill('ari')",
+    demoPath: "/login",
+    demoTitle: "Gmail-style login",
     tasks: [
       "Target inputs with `getByLabel()`.",
-      "Fill realistic values into the name and email fields.",
+      "Fill realistic values into the username and password fields.",
       "Submit and assert the confirmation text."
     ],
     code: `import { test, expect } from '@playwright/test';
 
-test('creates a trial account', async ({ page }) => {
-  await page.goto('/signup');
+test('signs in to mail', async ({ page }) => {
+  await page.goto('/login');
 
-  await page.getByLabel('Name').fill('Ari Cohen');
-  await page.getByLabel('Email').fill('ari@example.com');
-  await page.getByRole('button', { name: 'Create trial' }).click();
+  await page.getByLabel('Username').fill('ari');
+  await page.getByLabel('Password').fill('playwright-demo');
+  await page.getByRole('button', { name: 'Sign in' }).click();
 
-  await expect(page.getByText('Trial created')).toBeVisible();
+  await expect(page.getByText('Inbox ready')).toBeVisible();
 });`,
     codeTips: {
-      "await page.goto('/signup');":
-        "A real test opens /signup from a fresh page before filling the form.",
-      "await page.getByLabel('Name').fill('Ari Cohen');":
-        "Find the input connected to the Name label and type a value into it.",
-      "await page.getByLabel('Email').fill('ari@example.com');":
-        "Find the input connected to the Email label. Labels are usually more stable than placeholder text.",
-      "await page.getByRole('button', { name: 'Create trial' }).click();":
+      "await page.goto('/login');":
+        "A real test opens /login from a fresh page before filling the sign-in form.",
+      "await page.getByLabel('Username').fill('ari');":
+        "Find the input connected to the Username label. Labels are usually more stable than placeholder text.",
+      "await page.getByLabel('Password').fill('playwright-demo');":
+        "Find the password field by label and fill it with a demo value.",
+      "await page.getByRole('button', { name: 'Sign in' }).click();":
         "Find the submit button by what the user sees, then click it.",
-      "await expect(page.getByText('Trial created')).toBeVisible();":
-        "Check that the app confirms the form was submitted."
+      "await expect(page.getByText('Inbox ready')).toBeVisible();":
+        "Check that the app confirms sign-in reached the inbox state."
     },
-    initial: () => ({ name: "", email: "", submitted: false }),
+    initial: () => ({ user: "", password: "", submitted: false }),
     resultSteps: [
-      { text: "Test opens /signup", codeLine: "await page.goto('/signup');" },
+      { text: "Test opens /login", codeLine: "await page.goto('/login');" },
       {
-        text: "Filled Name",
-        codeLine: "await page.getByLabel('Name').fill('Ari Cohen');",
-        apply: state => ({ ...state, name: "Ari Cohen" })
+        text: "Filled Username",
+        codeLine: "await page.getByLabel('Username').fill('ari');",
+        apply: state => ({ ...state, user: "ari" })
       },
       {
-        text: "Filled Email",
-        codeLine: "await page.getByLabel('Email').fill('ari@example.com');",
-        apply: state => ({ ...state, email: "ari@example.com" })
+        text: "Filled Password",
+        codeLine: "await page.getByLabel('Password').fill('playwright-demo');",
+        apply: state => ({ ...state, password: "playwright-demo" })
       },
       {
-        text: "Clicked Create trial",
-        codeLine: "await page.getByRole('button', { name: 'Create trial' }).click();",
-        apply: state => ({ ...state, submitted: Boolean(state.name && state.email) })
+        text: "Clicked Sign in",
+        codeLine: "await page.getByRole('button', { name: 'Sign in' }).click();",
+        apply: state => ({ ...state, submitted: Boolean(state.user && state.password) })
       },
-      { text: "Found visible text: Trial created", codeLine: "await expect(page.getByText('Trial created')).toBeVisible();" }
+      { text: "Found visible text: Inbox ready", codeLine: "await expect(page.getByText('Inbox ready')).toBeVisible();" }
     ],
     render: state => `
-      <form class="demo-card" data-form="signup">
+      <form class="demo-card gmail-login-card" data-form="signin">
+        <div class="gmail-wordmark" aria-label="Gmail">
+          <span>G</span><span>m</span><span>a</span><span>i</span><span>l</span>
+        </div>
         <span class="status-pill ${state.submitted ? "success" : ""}">
-          ${state.submitted ? "Trial created" : "Draft"}
+          ${state.submitted ? "Inbox ready" : "Sign-in form"}
         </span>
-        <h3>Create a trial</h3>
+        <h3>Sign in</h3>
+        <p>Use the lesson account to continue to Gmail.</p>
         <div class="demo-field">
-          <label for="name">Name</label>
-          <input id="name" name="name" value="${escapeHtml(state.name)}" autocomplete="name">
+          <label for="user">Username</label>
+          <input id="user" name="user" value="${escapeHtml(state.user)}" autocomplete="username">
         </div>
         <div class="demo-field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" value="${escapeHtml(state.email)}" autocomplete="email">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" value="${escapeHtml(state.password)}" autocomplete="current-password">
         </div>
-        <button class="demo-button" type="submit">Create trial</button>
+        <div class="gmail-actions">
+            <button class="gmail-link-button" type="button">Forgot username?</button>
+          <button class="demo-button ${state.submitted ? "is-signed-in" : ""}" type="submit">
+            ${state.submitted ? "Signed in" : "Sign in"}
+          </button>
+        </div>
       </form>`,
     bind: surface => {
-      surface.querySelector("#name").addEventListener("input", event => {
-        demoState.name = event.target.value;
+      const userInput = surface.querySelector("#user");
+      const passwordInput = surface.querySelector("#password");
+      const signInForm = surface.querySelector('[data-form="signin"]');
+
+      userInput.addEventListener("input", event => {
+        demoState.user = event.target.value;
       });
-      surface.querySelector("#email").addEventListener("input", event => {
-        demoState.email = event.target.value;
+      passwordInput.addEventListener("input", event => {
+        demoState.password = event.target.value;
       });
-      surface.querySelector('[data-form="signup"]').addEventListener("submit", event => {
+      signInForm.addEventListener("submit", event => {
         event.preventDefault();
-        demoState.submitted = Boolean(demoState.name && demoState.email);
+        demoState.submitted = true;
         renderDemo();
+        scheduleDemoResultReset();
       });
     },
     validate: state => state.submitted,
-    hints: ["Filled Name", "Filled Email", "Clicked Create trial", "Found visible text: Trial created"]
+    hints: ["Filled Username", "Filled Password", "Clicked Sign in", "Found visible text: Inbox ready"]
   },
   {
     title: "Find the Right Element",
-    short: "Locators",
+    short: "role + name",
     time: "9 min",
     summary:
-      "Learn how Playwright thinks about the page: users see roles, names, labels, and text. Strong locators follow that same model.",
+      "Find the exact button by role and name instead of relying on visual position.",
     goal: "Choose a product by accessible button name and avoid depending on visual order.",
     userAction:
       "In the product picker, the user clicks Choose Team plan. There are several similar buttons, so the exact one matters.",
@@ -287,82 +302,126 @@ test('selects the team plan', async ({ page }) => {
   },
   {
     title: "Check the Result",
-    short: "Assertions",
+    short: "expect",
     time: "7 min",
     summary:
-      "A test is only useful when it proves something. This lesson focuses on making assertions readable and user-centered.",
-    goal: "Use `expect(locator).toHaveText()` to verify a visible count after an action.",
+      "Click two product actions, read the visible result, and assert the exact text users see.",
+    goal: "Use `expect(locator).toHaveText()` to verify the cart count reaches the expected value.",
     userAction:
-      "The user clicks Add keyboard once in the Demo App.",
+      "The user clicks Add keyboard and Add mouse in the Demo App.",
     playwrightAction:
-      "The code clicks the add button, then checks the cart-count element text.",
+      "The code clicks both add buttons, then checks the cart-count element text.",
     successCheck:
-      "Run test should pass when the badge says 1 item.",
+      "Run test should pass when the badge says 2 items.",
     conceptTitle: "Assertions prove the result",
     conceptBody: [
       { label: "Locator", value: "cart-count", note: "The badge the test reads." },
-      { label: "Expected", value: "1 item", note: "The exact text users should see." },
+      { label: "Expected", value: "2 items", note: "The exact text users should see." },
       { label: "Assertion", value: "toHaveText()", note: "Waits until the text matches." }
     ],
-    conceptCode: "expect(page.getByTestId('cart-count')).toHaveText('1 item')",
+    conceptCode: "expect(page.getByTestId('cart-count')).toHaveText('2 items')",
     demoPath: "/cart",
     demoTitle: "Cart counter",
     tasks: [
-      "Add an item to the cart.",
+      "Add two products to the cart.",
       "Read the cart count from the visible badge.",
       "Assert the exact text that users see."
     ],
-    code: `import { test, expect } from '@playwright/test';
+    codeTips: {
+      "await page.goto('/cart');":
+        "A real test opens /cart from a fresh page.",
+      "await page.getByRole('button', { name: 'Add keyboard' }).click();":
+        "Click the first product button the user sees.",
+      "await page.getByRole('button', { name: 'Add mouse' }).click();":
+        "Click the second product button so the cart has two items.",
+      "await expect(page.getByTestId('cart-count')).toHaveText('2 items');":
+        "`toHaveText` waits until the cart badge says exactly 2 items. If only one product was added, this fails."
+    },
+    scenarios: {
+      pass: {
+        code: `import { test, expect } from '@playwright/test';
+
+test('updates the cart count', async ({ page }) => {
+  await page.goto('/cart');
+
+  await page.getByRole('button', { name: 'Add keyboard' }).click();
+  await page.getByRole('button', { name: 'Add mouse' }).click();
+
+  await expect(page.getByTestId('cart-count')).toHaveText('2 items');
+});`,
+        resultSteps: [
+          { text: "Test opens /cart", codeLine: "await page.goto('/cart');" },
+          {
+            text: "Clicked Add keyboard",
+            codeLine: "await page.getByRole('button', { name: 'Add keyboard' }).click();",
+            apply: state => ({ ...state, count: state.count + 1, addedKeyboard: true })
+          },
+          {
+            text: "Clicked Add mouse",
+            codeLine: "await page.getByRole('button', { name: 'Add mouse' }).click();",
+            apply: state => ({ ...state, count: state.count + 1, addedMouse: true })
+          },
+          { text: "Expected cart count: 2 items", codeLine: "await expect(page.getByTestId('cart-count')).toHaveText('2 items');" }
+        ],
+        validate: state => state.count === 2
+      },
+      fail: {
+        code: `import { test, expect } from '@playwright/test';
 
 test('updates the cart count', async ({ page }) => {
   await page.goto('/cart');
 
   await page.getByRole('button', { name: 'Add keyboard' }).click();
 
-  await expect(page.getByTestId('cart-count')).toHaveText('1 item');
+  await expect(page.getByTestId('cart-count')).toHaveText('2 items');
 });`,
-    codeTips: {
-      "await page.goto('/cart');":
-        "A real test opens /cart from a fresh page.",
-      "await page.getByRole('button', { name: 'Add keyboard' }).click();":
-        "Click the same Add keyboard button the user sees.",
-      "await expect(page.getByTestId('cart-count')).toHaveText('1 item');":
-        "`toHaveText` waits until the cart badge says exactly 1 item."
+        resultSteps: [
+          { text: "Test opens /cart", codeLine: "await page.goto('/cart');" },
+          {
+            text: "Clicked Add keyboard",
+            codeLine: "await page.getByRole('button', { name: 'Add keyboard' }).click();",
+            apply: state => ({ ...state, count: state.count + 1, addedKeyboard: true })
+          },
+          { text: "Expected 2 items, found 1 item", codeLine: "await expect(page.getByTestId('cart-count')).toHaveText('2 items');" }
+        ],
+        validate: state => state.count === 2
+      }
     },
     initial: () => ({ count: 0 }),
-    resultSteps: [
-      { text: "Test opens /cart", codeLine: "await page.goto('/cart');" },
-      {
-        text: "Clicked Add keyboard",
-        codeLine: "await page.getByRole('button', { name: 'Add keyboard' }).click();",
-        apply: state => ({ ...state, count: state.count + 1 })
-      },
-      { text: "Expected cart count: 1 item", codeLine: "await expect(page.getByTestId('cart-count')).toHaveText('1 item');" }
-    ],
     render: state => `
       <article class="demo-card">
         <span class="status-pill ${state.count ? "success" : ""}" data-testid="cart-count">
           ${state.count} ${state.count === 1 ? "item" : "items"}
         </span>
         <h3>Desk store</h3>
-        <p>Mechanical keyboard, compact layout, ready for testing.</p>
-        <button class="demo-button" data-action="add-keyboard">Add keyboard</button>
+        <p>Add two products. One product is not enough for this assertion.</p>
+        <div class="cart-products">
+          <button class="demo-button" data-action="add-keyboard" ${state.addedKeyboard || state.count >= 2 ? "disabled" : ""}>Add keyboard</button>
+          <button class="demo-button secondary" data-action="add-mouse" ${state.addedMouse || state.count >= 2 ? "disabled" : ""}>Add mouse</button>
+        </div>
       </article>`,
     bind: surface => {
       surface.querySelector('[data-action="add-keyboard"]').addEventListener("click", () => {
+        if (demoState.addedKeyboard || demoState.count >= 2) return;
+        demoState.addedKeyboard = true;
+        demoState.count += 1;
+        renderDemo();
+      });
+      surface.querySelector('[data-action="add-mouse"]').addEventListener("click", () => {
+        if (demoState.addedMouse || demoState.count >= 2) return;
+        demoState.addedMouse = true;
         demoState.count += 1;
         renderDemo();
       });
     },
-    validate: state => state.count === 1,
-    hints: ["Clicked Add keyboard", "Read data-testid cart-count", "Expected text: 1 item"]
+    hints: ["Clicked Add keyboard", "Clicked Add mouse", "Read data-testid cart-count", "Expected text: 2 items"]
   },
   {
     title: "Wait for UI Changes",
-    short: "Auto-waiting",
+    short: "auto-wait",
     time: "10 min",
     summary:
-      "Playwright waits for elements to be ready before acting. Practice testing a screen that changes after a short delay.",
+      "Click a delayed action and let Playwright wait until the final result appears.",
     goal: "Let Playwright wait for the final visible state instead of adding manual timeouts.",
     userAction:
       "The user clicks Generate report and waits until the status changes from Generating to Report ready.",
@@ -443,10 +502,10 @@ test('generates the weekly report', async ({ page }) => {
   },
   {
     title: "Debug a Broken Test",
-    short: "Debugging",
+    short: "debugging",
     time: "12 min",
     summary:
-      "When a test fails, Playwright gives you traces, screenshots, and precise error messages. This lesson turns debugging into a repeatable habit.",
+      "Read the failed state, add the missing action, and verify the fixed result.",
     goal: "Use the runner output to spot the missing action and fix the scenario.",
     userAction:
       "The user first presses Run test to see the missing state. Then the user clicks Enable release alerts and runs it again.",
@@ -524,6 +583,8 @@ test('enables release notifications', async ({ page }) => {
 let activeLessonIndex = 0;
 let demoState = lessons[0].initial();
 let runAnimationId = 0;
+let demoResultResetTimer = 0;
+let lesson4Scenario = "fail";
 
 const lessonList = document.querySelector("#lesson-list");
 const lessonStep = document.querySelector("#lesson-step");
@@ -544,9 +605,12 @@ const codeExample = document.querySelector("#code-example");
 const runnerStatus = document.querySelector("#runner-status");
 const runnerLog = document.querySelector("#runner-log");
 const runTestButton = document.querySelector("#run-test");
+const scenarioToggle = document.querySelector("#scenario-toggle");
 const themeToggle = document.querySelector("#theme-toggle");
 const themeToggleLabel = document.querySelector("#theme-toggle-label");
 const automationCursor = document.querySelector("#automation-cursor");
+const pageScrollbar = document.querySelector("#page-scrollbar");
+const pageScrollbarThumb = document.querySelector("#page-scrollbar-thumb");
 
 let exampleAnimationId = 0;
 let exampleRunning = false;
@@ -634,8 +698,23 @@ function renderCodeWithTips(code, tips) {
   return lines;
 }
 
+function getLessonRunnerSteps(lesson) {
+  return lesson.scenarios ? lesson.scenarios[lesson4Scenario].resultSteps : lesson.resultSteps;
+}
+
+function getLessonValidation(lesson) {
+  return lesson.scenarios ? lesson.scenarios[lesson4Scenario].validate : lesson.validate;
+}
+
+function getLessonCode(lesson) {
+  return lesson.scenarios ? lesson.scenarios[lesson4Scenario].code : lesson.code;
+}
+
 function setLesson(index) {
   activeLessonIndex = index;
+  if (index === 3 && !exampleRunning) {
+    lesson4Scenario = "fail";
+  }
   demoState = lessons[index].initial();
   renderLesson();
   renderDemo();
@@ -694,12 +773,18 @@ function renderLesson() {
   lessonGoal.textContent = lesson.goal;
   userAction.textContent = lesson.userAction;
   playwrightAction.textContent = lesson.playwrightAction;
-  successCheck.textContent = lesson.successCheck;
+  successCheck.textContent = "Start with a manual test, then click Run test to follow the automation test.";
   conceptTitle.textContent = lesson.conceptCode;
   conceptBody.innerHTML = renderConceptBody(lesson.conceptBody);
   demoTitle.textContent = lesson.demoTitle;
   demoAddress.textContent = `https://demo.playwright-lab.test${lesson.demoPath}`;
-  codeExample.innerHTML = renderCodeWithTips(lesson.code, lesson.codeTips || {});
+  scenarioToggle.hidden = !lesson.scenarios;
+  if (lesson.scenarios) {
+    scenarioToggle.querySelectorAll("[data-scenario]").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.scenario === lesson4Scenario));
+    });
+  }
+  codeExample.innerHTML = renderCodeWithTips(getLessonCode(lesson), lesson.codeTips || {});
 
   taskList.innerHTML = lesson.tasks
     .map((task, index) => `
@@ -713,7 +798,7 @@ function renderLesson() {
 
 function renderRunnerSteps() {
   const lesson = lessons[activeLessonIndex];
-  runnerLog.innerHTML = lesson.resultSteps
+  runnerLog.innerHTML = getLessonRunnerSteps(lesson)
     .map((step, index) => `
       <li>
         <button class="result-step" type="button" data-result-index="${index}">
@@ -748,7 +833,7 @@ function findCodeLineByKey(codeLine) {
 
 function highlightTraceStep(index, mode = "active") {
   const lesson = lessons[activeLessonIndex];
-  const step = lesson.resultSteps[index];
+  const step = getLessonRunnerSteps(lesson)[index];
   if (!step) return;
 
   clearTraceHighlights();
@@ -773,14 +858,79 @@ function sleep(ms) {
   return new Promise(resolve => window.setTimeout(resolve, ms));
 }
 
+function updatePageScrollbar() {
+  const scrollContainer = document.querySelector(".workspace");
+  const scrollable = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+  if (scrollable <= 0) {
+    pageScrollbar.classList.add("is-hidden");
+    return;
+  }
+
+  pageScrollbar.classList.remove("is-hidden");
+  const trackHeight = pageScrollbar.getBoundingClientRect().height;
+  const thumbHeight = Math.max(44, (scrollContainer.clientHeight / scrollContainer.scrollHeight) * trackHeight);
+  const maxThumbTravel = trackHeight - thumbHeight;
+  const scrollProgress = scrollContainer.scrollTop / scrollable;
+  pageScrollbarThumb.style.height = `${thumbHeight}px`;
+  pageScrollbarThumb.style.transform = `translateY(${maxThumbTravel * scrollProgress}px)`;
+}
+
+function scrollElementBy(element, amount) {
+  const previousTop = element.scrollTop;
+  element.scrollTop += amount;
+  return element.scrollTop !== previousTop;
+}
+
+function handlePageWheel(event) {
+  if (event.ctrlKey || Math.abs(event.deltaY) < 1) return;
+
+  const target = event.target instanceof Element ? event.target : null;
+  const sidebar = target?.closest(".sidebar");
+  if (sidebar && sidebar.scrollHeight > sidebar.clientHeight && scrollElementBy(sidebar, event.deltaY)) {
+    event.preventDefault();
+    return;
+  }
+
+  const workspace = document.querySelector(".workspace");
+  if (workspace.scrollHeight > workspace.clientHeight && scrollElementBy(workspace, event.deltaY)) {
+    event.preventDefault();
+    updatePageScrollbar();
+  }
+}
+
 function renderDemo() {
   const lesson = lessons[activeLessonIndex];
   demoSurface.innerHTML = lesson.render(demoState);
   lesson.bind(demoSurface);
+  updatePageScrollbar();
+}
+
+function clearDemoResultReset() {
+  window.clearTimeout(demoResultResetTimer);
+  demoResultResetTimer = 0;
+}
+
+function resetTemporaryDemoResult() {
+  if (demoState.clicked) {
+    demoState = { ...demoState, clicked: false };
+    renderDemo();
+    return;
+  }
+
+  if (demoState.submitted) {
+    demoState = { ...demoState, submitted: false };
+    renderDemo();
+  }
+}
+
+function scheduleDemoResultReset() {
+  clearDemoResultReset();
+  demoResultResetTimer = window.setTimeout(resetTemporaryDemoResult, 2000);
 }
 
 function resetRunner() {
   runAnimationId += 1;
+  clearDemoResultReset();
   runnerStatus.textContent = "Not run";
   runnerStatus.className = "";
   runTestButton.disabled = false;
@@ -804,9 +954,11 @@ async function runTest() {
 
   const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 300 : 1600;
 
-  for (let index = 0; index < lesson.resultSteps.length; index += 1) {
+  const steps = getLessonRunnerSteps(lesson);
+
+  for (let index = 0; index < steps.length; index += 1) {
     if (runAnimationId !== animationId) return;
-    const step = lesson.resultSteps[index];
+    const step = steps[index];
     if (step.apply) {
       demoState = step.apply(demoState);
       renderDemo();
@@ -816,7 +968,7 @@ async function runTest() {
   }
 
   if (runAnimationId !== animationId) return;
-  const passed = lesson.validate(demoState);
+  const passed = getLessonValidation(lesson)(demoState);
   runnerLog.querySelectorAll(".result-step").forEach(step => {
     step.classList.add("is-complete");
     step.classList.remove("is-active");
@@ -827,6 +979,7 @@ async function runTest() {
   runnerStatus.textContent = passed ? "Passed" : "Needs action";
   runnerStatus.className = passed ? "pass" : "fail";
   runTestButton.disabled = false;
+  if (passed) scheduleDemoResultReset();
 }
 
 function moveAutomationCursorTo(target) {
@@ -899,6 +1052,9 @@ async function runExampleAutomation() {
 
   for (let index = 0; index < lessons.length; index += 1) {
     if (exampleAnimationId !== animationId) return;
+    if (index === 3) {
+      lesson4Scenario = "pass";
+    }
     const lessonButton = lessonList.querySelector(`[data-lesson="${index}"]`);
     if (!await automationClick(lessonButton, animationId)) return;
 
@@ -922,6 +1078,16 @@ document.querySelector("#reset-demo").addEventListener("click", () => {
 
 runTestButton.addEventListener("click", runTest);
 
+scenarioToggle.querySelectorAll("[data-scenario]").forEach(button => {
+  button.addEventListener("click", () => {
+    lesson4Scenario = button.dataset.scenario;
+    demoState = lessons[activeLessonIndex].initial();
+    renderLesson();
+    renderDemo();
+    resetRunner();
+  });
+});
+
 themeToggle.addEventListener("click", () => {
   const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   applyTheme(nextTheme);
@@ -930,3 +1096,9 @@ themeToggle.addEventListener("click", () => {
 renderLesson();
 renderDemo();
 resetRunner();
+updatePageScrollbar();
+
+window.addEventListener("scroll", updatePageScrollbar, { passive: true });
+document.querySelector(".workspace").addEventListener("scroll", updatePageScrollbar, { passive: true });
+document.addEventListener("wheel", handlePageWheel, { passive: false });
+window.addEventListener("resize", updatePageScrollbar);

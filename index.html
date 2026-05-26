@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Playwright Lab</title>
-    <link rel="stylesheet" href="styles.css?v=24">
+    <link rel="stylesheet" href="styles.css?v=42">
   </head>
   <body>
     <a class="skip-link" href="#lesson-title">Skip to lesson</a>
@@ -71,18 +71,18 @@
           </div>
 
           <div class="practice-box" aria-labelledby="practice-title">
-            <h2 id="practice-title">What user should do</h2>
+            <h2 id="practice-title">Human Tester Vs Automation Framework</h2>
             <div class="practice-steps">
               <div>
-                <span class="step-label">1. User</span>
+                <span class="step-label">1. Manual</span>
                 <p id="user-action"></p>
               </div>
               <div>
-                <span class="step-label">2. Playwright</span>
+                <span class="step-label">2. Automation</span>
                 <p id="playwright-action"></p>
               </div>
               <div>
-                <span class="step-label">3. Pass check</span>
+                <span class="step-label">3. Hands-on both!</span>
                 <p id="success-check"></p>
               </div>
             </div>
@@ -128,6 +128,10 @@
                   Run test
                 </button>
               </div>
+              <div class="scenario-toggle" id="scenario-toggle" aria-label="Lesson 4 scenario">
+                <button type="button" data-scenario="pass" aria-pressed="false">Pass: 2 items</button>
+                <button type="button" data-scenario="fail" aria-pressed="true">Fail: 1 item</button>
+              </div>
 
               <div class="test-visualizer">
                 <div class="runner" aria-live="polite">
@@ -163,7 +167,10 @@
         <path d="M8.5 12.2 7.3 11a1.5 1.5 0 0 0-2.1 2.1l4.5 5.1c.9 1 2.1 1.5 3.4 1.5h1.7a4.2 4.2 0 0 0 4.2-4.2V12a1.3 1.3 0 0 0-2.6 0v1"></path>
       </svg>
     </div>
+    <div class="page-scrollbar" id="page-scrollbar" aria-hidden="true">
+      <div class="page-scrollbar-thumb" id="page-scrollbar-thumb"></div>
+    </div>
 
-    <script src="app.js?v=24"></script>
+    <script src="app.js?v=42"></script>
   </body>
 </html>

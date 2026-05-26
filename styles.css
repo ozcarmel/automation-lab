@@ -50,12 +50,35 @@
 }
 
 html {
+  overflow-y: scroll;
   scroll-behavior: smooth;
+  scrollbar-color: color-mix(in srgb, var(--primary) 42%, var(--line)) var(--bg);
+  scrollbar-gutter: stable;
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 4px solid var(--bg);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 42%, var(--line));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 66%, var(--line));
 }
 
 body {
   margin: 0;
+  height: 100dvh;
   min-width: 320px;
+  overflow: hidden;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--primary) 11%, transparent), transparent 280px),
     var(--bg);
@@ -102,7 +125,8 @@ a:focus-visible {
 .app-shell {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
-  min-height: 100dvh;
+  height: 100dvh;
+  min-height: 0;
 }
 
 .sidebar {
@@ -316,7 +340,31 @@ a:focus-visible {
 
 .workspace {
   display: block;
+  height: 100dvh;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 24px;
+  scrollbar-color: color-mix(in srgb, var(--primary) 42%, var(--line)) var(--bg);
+  scrollbar-gutter: stable;
+}
+
+.workspace::-webkit-scrollbar {
+  width: 14px;
+}
+
+.workspace::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+.workspace::-webkit-scrollbar-thumb {
+  border: 4px solid var(--bg);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 42%, var(--line));
+}
+
+.workspace::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 66%, var(--line));
 }
 
 .lesson-panel,
@@ -621,6 +669,34 @@ h2 {
   opacity: 0.68;
 }
 
+.scenario-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -4px 0 12px;
+}
+
+.scenario-toggle[hidden] {
+  display: none;
+}
+
+.scenario-toggle button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--muted);
+  padding: 5px 11px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.scenario-toggle button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--primary) 52%, var(--line));
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
 .lesson-button.is-auto-clicking,
 .primary-button.is-auto-clicking {
   animation: auto-button-click 360ms ease;
@@ -797,6 +873,12 @@ h2 {
   gap: 10px;
 }
 
+.cart-products {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .demo-button {
   position: relative;
   min-height: 44px;
@@ -806,6 +888,11 @@ h2 {
   color: #fff7ed;
   padding: 0 14px;
   font-weight: 800;
+}
+
+.demo-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
 }
 
 .demo-tooltip {
@@ -878,6 +965,126 @@ h2 {
   background: var(--surface-raised);
   color: var(--ink);
   padding: 10px 12px;
+}
+
+.gmail-login-card {
+  gap: 16px;
+  max-width: 520px;
+  border-color: #dadce0;
+  background: #ffffff;
+  color: #202124;
+  font-family: Roboto, Arial, sans-serif;
+  padding: 28px;
+}
+
+.gmail-wordmark {
+  display: inline-flex;
+  width: fit-content;
+  font-family: Product Sans, Google Sans, Roboto, Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.gmail-wordmark span:nth-child(1) {
+  color: #4285f4;
+}
+
+.gmail-wordmark span:nth-child(2),
+.gmail-wordmark span:nth-child(5) {
+  color: #ea4335;
+}
+
+.gmail-wordmark span:nth-child(3) {
+  color: #fbbc04;
+}
+
+.gmail-wordmark span:nth-child(4) {
+  color: #34a853;
+}
+
+.gmail-login-card h3 {
+  color: #202124;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.gmail-login-card p {
+  color: #3c4043;
+  font-size: 15px;
+}
+
+.gmail-login-card .status-pill {
+  border: 1px solid #dadce0;
+  background: #f8fafd;
+  color: #5f6368;
+  font-weight: 650;
+}
+
+.gmail-login-card .status-pill.success {
+  border-color: #c6e7cf;
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.gmail-login-card .demo-field {
+  gap: 7px;
+}
+
+.gmail-login-card .demo-field label {
+  color: #3c4043;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.gmail-login-card .demo-field input {
+  border-color: #dadce0;
+  background: #ffffff;
+  color: #202124;
+  font-size: 16px;
+}
+
+.gmail-login-card .demo-field input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 1px #1a73e8;
+  outline: none;
+}
+
+.gmail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.gmail-link-button {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: #1a73e8;
+  padding: 0 6px;
+  font-weight: 700;
+}
+
+.gmail-login-card .demo-button {
+  min-width: 92px;
+  border-radius: 999px;
+  background: #1a73e8;
+  color: #ffffff;
+}
+
+.gmail-login-card .demo-button:hover {
+  background: #185abc;
+}
+
+.gmail-login-card .demo-button.is-signed-in {
+  background: #188038;
+  box-shadow: 0 0 0 4px rgba(24, 128, 56, 0.14);
+  color: #ffffff;
 }
 
 .status-pill {
@@ -1230,6 +1437,34 @@ h2 {
   }
 }
 
+.page-scrollbar {
+  position: fixed;
+  right: 4px;
+  top: 8px;
+  bottom: 8px;
+  z-index: 70;
+  width: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 70%, transparent);
+  pointer-events: none;
+}
+
+.page-scrollbar-thumb {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 6px;
+  min-height: 44px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 66%, var(--line));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.page-scrollbar.is-hidden {
+  display: none;
+}
+
 @media (max-width: 1180px) {
   .lab-panels {
     grid-template-columns: minmax(0, 1fr);
@@ -1255,8 +1490,14 @@ h2 {
 }
 
 @media (max-width: 860px) {
+  body {
+    height: auto;
+    overflow: auto;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
   .sidebar {
@@ -1271,6 +1512,8 @@ h2 {
   }
 
   .workspace {
+    height: auto;
+    overflow: visible;
     padding: 18px;
   }
 }
