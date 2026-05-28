@@ -11,16 +11,17 @@ const lessons = [
     playwrightAction:
       "The code finds the same button by its role and visible name, then calls `.click()` on it.",
     successCheck:
-      "After the user clicks Start tour, press Run test. The result should say Passed.",
+      "First click Start tour manually. Then run the automation and watch it click the same button and verify Tour started.",
     conceptTitle: "Why `page.getByRole()`?",
     conceptBody: [
+      { label: "Locator", value: "getByRole()", note: "A Playwright locator finds an element on the page." },
       { label: "Role", value: "button", note: "The accessibility type Playwright searches for." },
       { label: "Name", value: "Start tour", note: "The visible name that chooses the exact button." },
       { label: "Element", value: "the actual button", note: "The real control Playwright finds and clicks." }
     ],
     conceptCode: "page.getByRole('button', { name: 'Start tour' })",
     demoPath: "/welcome",
-    demoTitle: "NBA statistics lab",
+    demoTitle: "Portal welcome",
     tasks: [
       "Inspect the demo app and identify the primary button.",
       "Use a role locator instead of a brittle CSS selector.",
@@ -58,24 +59,25 @@ test('opens the welcome message', async ({ page }) => {
       { text: "Found visible text: Tour started", codeLine: "await expect(page.getByText('Tour started')).toBeVisible();" }
     ],
     render: state => `
-      <article class="demo-card nba-demo-card">
-        <div class="nba-demo-header">
-          <img class="nba-logo" src="https://upload.wikimedia.org/wikipedia/commons/e/e5/NBA_script.svg" alt="NBA logo">
+      <article class="demo-card portal-welcome-card">
+        <div class="portal-demo-header">
+          <span class="portal-demo-logo" aria-hidden="true">&lt;/&gt;</span>
+          <strong>Playwright Lab</strong>
         </div>
-        <h3>Welcome to NBA statistics lab</h3>
-        <p>Practice the first automation step on a compact stats dashboard.</p>
-        <div class="nba-stat-grid" aria-label="NBA sample statistics">
+        <h3>Welcome to the training portal</h3>
+        <p>Practice the first automation step on the portal dashboard.</p>
+        <div class="portal-stat-grid" aria-label="Playwright Lab training summary">
           <div>
-            <strong>112.4</strong>
-            <span>PPG</span>
+            <strong>6</strong>
+            <span>Lessons</span>
           </div>
           <div>
-            <strong>48.1</strong>
-            <span>FG%</span>
+            <strong>2</strong>
+            <span>Modes</span>
           </div>
           <div>
-            <strong>24</strong>
-            <span>Teams tracked</span>
+            <strong>1</strong>
+            <span>Workflow</span>
           </div>
         </div>
         <div class="demo-actions">
@@ -106,20 +108,21 @@ test('opens the welcome message', async ({ page }) => {
       "Find labeled fields, fill login details, submit the form, and verify sign-in worked.",
     goal: "Fill fields by label and submit the form without depending on placeholder text.",
     userAction:
-      "The user types a username and password in the Gmail-style sign-in screen, then clicks Sign in.",
+      "The user types a username and password in the portal sign-in screen, then clicks Sign in.",
     playwrightAction:
       "The code uses labels to find the inputs, fills them, then clicks the submit button.",
     successCheck:
-      "Run test should pass when the status says Inbox ready.",
+      "First try the form manually. Then run the automation and watch it fill both fields, sign in, and verify Dashboard ready.",
     conceptTitle: "Why `getByLabel()`?",
     conceptBody: [
+      { label: "Locator", value: "getByLabel()", note: "A locator that finds a form field through its visible label." },
       { label: "Label", value: "Username", note: "The visible label attached to the input." },
       { label: "Element", value: "username input", note: "The real field Playwright fills." },
       { label: "Action", value: "fill()", note: "Replaces the current input value." }
     ],
     conceptCode: "page.getByLabel('Username').fill('ari')",
     demoPath: "/login",
-    demoTitle: "Gmail-style login",
+    demoTitle: "Portal login",
     tasks: [
       "Target inputs with `getByLabel()`.",
       "Fill realistic values into the username and password fields.",
@@ -127,14 +130,14 @@ test('opens the welcome message', async ({ page }) => {
     ],
     code: `import { test, expect } from '@playwright/test';
 
-test('signs in to mail', async ({ page }) => {
+test('signs in to the portal', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Username').fill('ari');
   await page.getByLabel('Password').fill('playwright-demo');
   await page.getByRole('button', { name: 'Sign in' }).click();
 
-  await expect(page.getByText('Inbox ready')).toBeVisible();
+  await expect(page.getByText('Dashboard ready')).toBeVisible();
 });`,
     codeTips: {
       "await page.goto('/login');":
@@ -145,50 +148,59 @@ test('signs in to mail', async ({ page }) => {
         "Find the password field by label and fill it with a demo value.",
       "await page.getByRole('button', { name: 'Sign in' }).click();":
         "Find the submit button by what the user sees, then click it.",
-      "await expect(page.getByText('Inbox ready')).toBeVisible();":
-        "Check that the app confirms sign-in reached the inbox state."
+      "await expect(page.getByText('Dashboard ready')).toBeVisible();":
+        "Check that the app confirms sign-in reached the portal dashboard."
     },
-    initial: () => ({ user: "", password: "", submitted: false }),
+    initial: () => ({
+      user: "",
+      password: "",
+      submitted: false,
+      autoFilledUser: false,
+      autoFilledPassword: false,
+      invalidUser: false,
+      invalidPassword: false
+    }),
     resultSteps: [
       { text: "Test opens /login", codeLine: "await page.goto('/login');" },
       {
         text: "Filled Username",
         codeLine: "await page.getByLabel('Username').fill('ari');",
-        apply: state => ({ ...state, user: "ari" })
+        apply: state => ({ ...state, user: "ari", activeField: "user", autoFilledUser: true })
       },
       {
         text: "Filled Password",
         codeLine: "await page.getByLabel('Password').fill('playwright-demo');",
-        apply: state => ({ ...state, password: "playwright-demo" })
+        apply: state => ({ ...state, password: "playwright-demo", activeField: "password", autoFilledPassword: true })
       },
       {
         text: "Clicked Sign in",
         codeLine: "await page.getByRole('button', { name: 'Sign in' }).click();",
-        apply: state => ({ ...state, submitted: Boolean(state.user && state.password) })
+        apply: state => ({ ...state, submitted: Boolean(state.user && state.password), activeField: "" })
       },
-      { text: "Found visible text: Inbox ready", codeLine: "await expect(page.getByText('Inbox ready')).toBeVisible();" }
+      { text: "Found visible text: Dashboard ready", codeLine: "await expect(page.getByText('Dashboard ready')).toBeVisible();" }
     ],
     render: state => `
-      <form class="demo-card gmail-login-card" data-form="signin">
-        <div class="gmail-wordmark" aria-label="Gmail">
-          <span>G</span><span>m</span><span>a</span><span>i</span><span>l</span>
+      <form class="demo-card portal-login-card" data-form="signin">
+        <div class="portal-wordmark" aria-label="Playwright Lab">
+          <span>&lt;/&gt;</span>
+          <strong>Playwright <em>Lab</em></strong>
         </div>
-        <span class="status-pill ${state.submitted ? "success" : ""}">
-          ${state.submitted ? "Inbox ready" : "Sign-in form"}
+        <span class="status-pill ${state.submitted ? "success" : state.invalidUser || state.invalidPassword ? "danger" : ""}">
+          ${state.submitted ? "Dashboard ready" : state.invalidUser || state.invalidPassword ? "Missing details" : "Sign-in form"}
         </span>
         <h3>Sign in</h3>
-        <p>Use the lesson account to continue to Gmail.</p>
-        <div class="demo-field">
+        <p>Use the lesson account to continue to Playwright Lab.</p>
+        <div class="demo-field ${state.activeField === "user" || state.autoFilledUser ? "is-auto-filled" : ""} ${state.invalidUser ? "is-invalid" : ""}">
           <label for="user">Username</label>
           <input id="user" name="user" value="${escapeHtml(state.user)}" autocomplete="username">
         </div>
-        <div class="demo-field">
+        <div class="demo-field ${state.activeField === "password" || state.autoFilledPassword ? "is-auto-filled" : ""} ${state.invalidPassword ? "is-invalid" : ""}">
           <label for="password">Password</label>
           <input id="password" name="password" type="password" value="${escapeHtml(state.password)}" autocomplete="current-password">
         </div>
-        <div class="gmail-actions">
-            <button class="gmail-link-button" type="button">Forgot username?</button>
-          <button class="demo-button ${state.submitted ? "is-signed-in" : ""}" type="submit">
+        <div class="portal-login-actions">
+            <button class="portal-link-button" type="button">Forgot username?</button>
+          <button class="demo-button ${state.submitted ? "is-signed-in" : ""}" type="submit" data-action="submit-login">
             ${state.submitted ? "Signed in" : "Sign in"}
           </button>
         </div>
@@ -200,19 +212,27 @@ test('signs in to mail', async ({ page }) => {
 
       userInput.addEventListener("input", event => {
         demoState.user = event.target.value;
+        demoState.autoFilledUser = false;
+        demoState.invalidUser = false;
       });
       passwordInput.addEventListener("input", event => {
         demoState.password = event.target.value;
+        demoState.autoFilledPassword = false;
+        demoState.invalidPassword = false;
       });
       signInForm.addEventListener("submit", event => {
         event.preventDefault();
-        demoState.submitted = true;
+        const missingUser = !demoState.user.trim();
+        const missingPassword = !demoState.password.trim();
+        demoState.submitted = !missingUser && !missingPassword;
+        demoState.invalidUser = missingUser;
+        demoState.invalidPassword = missingPassword;
         renderDemo();
-        scheduleDemoResultReset();
+        if (demoState.submitted) scheduleDemoResultReset();
       });
     },
     validate: state => state.submitted,
-    hints: ["Filled Username", "Filled Password", "Clicked Sign in", "Found visible text: Inbox ready"]
+    hints: ["Filled Username", "Filled Password", "Clicked Sign in", "Found visible text: Dashboard ready"]
   },
   {
     title: "Find the Right Element",
@@ -220,71 +240,78 @@ test('signs in to mail', async ({ page }) => {
     time: "9 min",
     summary:
       "Find the exact button by role and name instead of relying on visual position.",
-    goal: "Choose a product by accessible button name and avoid depending on visual order.",
+    goal: "Choose the Work training path by accessible button name and avoid depending on visual order.",
     userAction:
-      "In the product picker, the user clicks Choose Team plan. There are several similar buttons, so the exact one matters.",
+      "In the path picker, the user clicks Choose Work path. Any other path should show the wrong-selection state.",
     playwrightAction:
-      "The code searches for a button named Choose Team plan instead of clicking the second card by position.",
+      "The code searches for a button named Choose Work path instead of clicking a card by position.",
     successCheck:
-      "Run test should pass when the status says Selected: Team.",
+      "First choose a path manually. Then run the automation and watch it select Work by exact button name.",
     conceptTitle: "Role plus name beats position",
     conceptBody: [
+      { label: "Locator", value: "getByRole()", note: "Finds elements by accessible meaning, not CSS position." },
       { label: "Role", value: "button", note: "Several controls share this type." },
-      { label: "Name", value: "Choose Team plan", note: "The exact button Playwright should pick." },
+      { label: "Name", value: "Choose Work path", note: "The exact button Playwright should pick." },
       { label: "Avoid", value: "position", note: "Do not rely on second card or visual order." }
     ],
-    conceptCode: "page.getByRole('button', { name: 'Choose Team plan' })",
+    conceptCode: "page.getByRole('button', { name: 'Choose Work path' })",
     demoPath: "/plans",
-    demoTitle: "Product picker",
+    demoTitle: "Training path picker",
     tasks: [
-      "Compare the repeated product cards.",
-      "Click the button whose name includes the product you want.",
-      "Assert that the selected product appears in the status area."
+      "Compare the repeated training path cards.",
+      "Click the button whose name includes the path you want.",
+      "Assert that the selected path appears in the status area."
     ],
     code: `import { test, expect } from '@playwright/test';
 
-test('selects the team plan', async ({ page }) => {
+test('selects the work path', async ({ page }) => {
   await page.goto('/plans');
 
   await page
-    .getByRole('button', { name: 'Choose Team plan' })
+    .getByRole('button', { name: 'Choose Work path' })
     .click();
 
-  await expect(page.getByText('Selected: Team')).toBeVisible();
+  await expect(page.getByText('Selected: Work')).toBeVisible();
 });`,
     codeTips: {
       "await page.goto('/plans');":
         "A real test opens /plans from a fresh page.",
-      ".getByRole('button', { name: 'Choose Team plan' })":
+      ".getByRole('button', { name: 'Choose Work path' })":
         "Choose the button by its accessible role and exact visible name.",
       ".click();":
         "Click the locator found on the line above.",
-      "await expect(page.getByText('Selected: Team')).toBeVisible();":
-        "Confirm the app selected the intended plan."
+      "await expect(page.getByText('Selected: Work')).toBeVisible();":
+        "Confirm the app selected the intended path."
     },
     initial: () => ({ selected: "" }),
     resultSteps: [
       { text: "Test opens /plans", codeLine: "await page.goto('/plans');" },
-      { text: "Located Choose Team plan button", codeLine: ".getByRole('button', { name: 'Choose Team plan' })" },
+      { text: "Located Choose Work path button", codeLine: ".getByRole('button', { name: 'Choose Work path' })" },
       {
         text: "Clicked the selected locator",
         codeLine: ".click();",
-        apply: state => ({ ...state, selected: "Team" })
+        apply: state => ({ ...state, selected: "Work" })
       },
-      { text: "Found visible text: Selected: Team", codeLine: "await expect(page.getByText('Selected: Team')).toBeVisible();" }
+      { text: "Found visible text: Selected: Work", codeLine: "await expect(page.getByText('Selected: Work')).toBeVisible();" }
     ],
     render: state => `
       <article class="demo-card">
-        <span class="status-pill ${state.selected ? "success" : ""}">
-          ${state.selected ? `Selected: ${state.selected}` : "No plan selected"}
+        <span class="status-pill ${state.selected === "Work" ? "success" : state.selected ? "danger" : ""}">
+          ${state.selected ? (state.selected === "Work" ? "Selected: Work" : "Wrong path selected") : "No path selected"}
         </span>
-        <h3>Choose a plan</h3>
+        <h3>Choose a training path</h3>
+        ${state.selected && state.selected !== "Work" ? `<p class="selection-feedback">Expected: Work. Actual: ${escapeHtml(state.selected)}.</p>` : ""}
         <div class="product-grid">
-          ${["Starter", "Team", "Scale", "Enterprise"].map(plan => `
-            <div class="product">
-              <strong>${plan}</strong>
-              <span>${plan === "Team" ? "Best for collaboration" : "Automation practice plan"}</span>
-              <button class="demo-button secondary" data-plan="${plan}">Choose ${plan} plan</button>
+          ${[
+            ["Home", "Practice small personal workflows"],
+            ["School", "Learn with classroom examples"],
+            ["Work", "Best for professional QA practice"],
+            ["Team", "Coordinate shared automation habits"]
+          ].map(([path, note]) => `
+            <div class="product ${state.selected === path ? (path === "Work" ? "is-correct" : "is-wrong") : ""}">
+              <strong>${path}</strong>
+              <span>${note}</span>
+              <button class="demo-button secondary" data-plan="${path}">Choose ${path} path</button>
             </div>
           `).join("")}
         </div>
@@ -297,92 +324,92 @@ test('selects the team plan', async ({ page }) => {
         });
       });
     },
-    validate: state => state.selected === "Team",
-    hints: ["Located button by role", "Clicked Choose Team plan", "Found visible text: Selected: Team"]
+    validate: state => state.selected === "Work",
+    hints: ["Located button by role", "Clicked Choose Work path", "Found visible text: Selected: Work"]
   },
   {
     title: "Check the Result",
     short: "expect",
     time: "7 min",
     summary:
-      "Click two product actions, read the visible result, and assert the exact text users see.",
-    goal: "Use `expect(locator).toHaveText()` to verify the cart count reaches the expected value.",
+      "Add two practice exercises, read the visible result, and assert the exact text users see.",
+    goal: "Use `expect(locator).toHaveText()` to verify the session count reaches the expected value.",
     userAction:
-      "The user clicks Add keyboard and Add mouse in the Demo App.",
+      "The user adds locator practice and assertion practice to today's session.",
     playwrightAction:
-      "The code clicks both add buttons, then checks the cart-count element text.",
+      "The code clicks both exercise buttons, then checks the session-count element text.",
     successCheck:
-      "Run test should pass when the badge says 2 items.",
+      "First add exercises manually. Then run pass and fail scenarios to compare 2 exercises with 1 exercise.",
     conceptTitle: "Assertions prove the result",
     conceptBody: [
-      { label: "Locator", value: "cart-count", note: "The badge the test reads." },
-      { label: "Expected", value: "2 items", note: "The exact text users should see." },
-      { label: "Assertion", value: "toHaveText()", note: "Waits until the text matches." }
+      { label: "Locator", value: "session-count", note: "The badge the test reads." },
+      { label: "Assertion", value: "toHaveText()", note: "An assertion checks that the app reached the expected result." },
+      { label: "Expected", value: "2 exercises", note: "The exact text users should see." }
     ],
-    conceptCode: "expect(page.getByTestId('cart-count')).toHaveText('2 items')",
-    demoPath: "/cart",
-    demoTitle: "Cart counter",
+    conceptCode: "expect(page.getByTestId('session-count')).toHaveText('2 exercises')",
+    demoPath: "/session",
+    demoTitle: "Session builder",
     tasks: [
-      "Add two products to the cart.",
-      "Read the cart count from the visible badge.",
+      "Add two practice exercises to the session.",
+      "Read the session count from the visible badge.",
       "Assert the exact text that users see."
     ],
     codeTips: {
-      "await page.goto('/cart');":
-        "A real test opens /cart from a fresh page.",
-      "await page.getByRole('button', { name: 'Add keyboard' }).click();":
-        "Click the first product button the user sees.",
-      "await page.getByRole('button', { name: 'Add mouse' }).click();":
-        "Click the second product button so the cart has two items.",
-      "await expect(page.getByTestId('cart-count')).toHaveText('2 items');":
-        "`toHaveText` waits until the cart badge says exactly 2 items. If only one product was added, this fails."
+      "await page.goto('/session');":
+        "A real test opens /session from a fresh page.",
+      "await page.getByRole('button', { name: 'Add locator practice' }).click();":
+        "Add the first required exercise to the session.",
+      "await page.getByRole('button', { name: 'Add assertion practice' }).click();":
+        "Add the second required exercise so the session has two exercises.",
+      "await expect(page.getByTestId('session-count')).toHaveText('2 exercises');":
+        "`toHaveText` waits until the session badge says exactly 2 exercises. If only one exercise was added, this fails."
     },
     scenarios: {
       pass: {
         code: `import { test, expect } from '@playwright/test';
 
-test('updates the cart count', async ({ page }) => {
-  await page.goto('/cart');
+test('builds a practice session', async ({ page }) => {
+  await page.goto('/session');
 
-  await page.getByRole('button', { name: 'Add keyboard' }).click();
-  await page.getByRole('button', { name: 'Add mouse' }).click();
+  await page.getByRole('button', { name: 'Add locator practice' }).click();
+  await page.getByRole('button', { name: 'Add assertion practice' }).click();
 
-  await expect(page.getByTestId('cart-count')).toHaveText('2 items');
+  await expect(page.getByTestId('session-count')).toHaveText('2 exercises');
 });`,
         resultSteps: [
-          { text: "Test opens /cart", codeLine: "await page.goto('/cart');" },
+          { text: "Test opens /session", codeLine: "await page.goto('/session');" },
           {
-            text: "Clicked Add keyboard",
-            codeLine: "await page.getByRole('button', { name: 'Add keyboard' }).click();",
-            apply: state => ({ ...state, count: state.count + 1, addedKeyboard: true })
+            text: "Clicked Add locator practice",
+            codeLine: "await page.getByRole('button', { name: 'Add locator practice' }).click();",
+            apply: state => ({ ...state, count: state.count + 1, addedLocator: true })
           },
           {
-            text: "Clicked Add mouse",
-            codeLine: "await page.getByRole('button', { name: 'Add mouse' }).click();",
-            apply: state => ({ ...state, count: state.count + 1, addedMouse: true })
+            text: "Clicked Add assertion practice",
+            codeLine: "await page.getByRole('button', { name: 'Add assertion practice' }).click();",
+            apply: state => ({ ...state, count: state.count + 1, addedAssertion: true })
           },
-          { text: "Expected cart count: 2 items", codeLine: "await expect(page.getByTestId('cart-count')).toHaveText('2 items');" }
+          { text: "Expected session count: 2 exercises", codeLine: "await expect(page.getByTestId('session-count')).toHaveText('2 exercises');" }
         ],
         validate: state => state.count === 2
       },
       fail: {
         code: `import { test, expect } from '@playwright/test';
 
-test('updates the cart count', async ({ page }) => {
-  await page.goto('/cart');
+test('builds a practice session', async ({ page }) => {
+  await page.goto('/session');
 
-  await page.getByRole('button', { name: 'Add keyboard' }).click();
+  await page.getByRole('button', { name: 'Add locator practice' }).click();
 
-  await expect(page.getByTestId('cart-count')).toHaveText('2 items');
+  await expect(page.getByTestId('session-count')).toHaveText('2 exercises');
 });`,
         resultSteps: [
-          { text: "Test opens /cart", codeLine: "await page.goto('/cart');" },
+          { text: "Test opens /session", codeLine: "await page.goto('/session');" },
           {
-            text: "Clicked Add keyboard",
-            codeLine: "await page.getByRole('button', { name: 'Add keyboard' }).click();",
-            apply: state => ({ ...state, count: state.count + 1, addedKeyboard: true })
+            text: "Clicked Add locator practice",
+            codeLine: "await page.getByRole('button', { name: 'Add locator practice' }).click();",
+            apply: state => ({ ...state, count: state.count + 1, addedLocator: true })
           },
-          { text: "Expected 2 items, found 1 item", codeLine: "await expect(page.getByTestId('cart-count')).toHaveText('2 items');" }
+          { text: "Expected 2 exercises, found 1 exercise", codeLine: "await expect(page.getByTestId('session-count')).toHaveText('2 exercises');" }
         ],
         validate: state => state.count === 2
       }
@@ -390,31 +417,38 @@ test('updates the cart count', async ({ page }) => {
     initial: () => ({ count: 0 }),
     render: state => `
       <article class="demo-card">
-        <span class="status-pill ${state.count ? "success" : ""}" data-testid="cart-count">
-          ${state.count} ${state.count === 1 ? "item" : "items"}
+        <span class="status-pill ${state.count ? "success" : ""}" data-testid="session-count">
+          ${state.count} ${state.count === 1 ? "exercise" : "exercises"}
         </span>
-        <h3>Desk store</h3>
-        <p>Add two products. One product is not enough for this assertion.</p>
-        <div class="cart-products">
-          <button class="demo-button" data-action="add-keyboard" ${state.addedKeyboard || state.count >= 2 ? "disabled" : ""}>Add keyboard</button>
-          <button class="demo-button secondary" data-action="add-mouse" ${state.addedMouse || state.count >= 2 ? "disabled" : ""}>Add mouse</button>
+        <h3>Build today's practice session</h3>
+        <p>Add exactly two exercises. One exercise is not enough for this assertion.</p>
+        <div class="session-exercises">
+          <button class="demo-button" data-action="add-locator" ${state.addedLocator || state.count >= 2 ? "disabled" : ""}>Add locator practice</button>
+          <button class="demo-button secondary" data-action="add-assertion" ${state.addedAssertion || state.count >= 2 ? "disabled" : ""}>Add assertion practice</button>
+          <button class="demo-button secondary" data-action="add-debug" ${state.addedDebug || state.count >= 2 ? "disabled" : ""}>Add debug practice</button>
         </div>
       </article>`,
     bind: surface => {
-      surface.querySelector('[data-action="add-keyboard"]').addEventListener("click", () => {
-        if (demoState.addedKeyboard || demoState.count >= 2) return;
-        demoState.addedKeyboard = true;
+      surface.querySelector('[data-action="add-locator"]').addEventListener("click", () => {
+        if (demoState.addedLocator || demoState.count >= 2) return;
+        demoState.addedLocator = true;
         demoState.count += 1;
         renderDemo();
       });
-      surface.querySelector('[data-action="add-mouse"]').addEventListener("click", () => {
-        if (demoState.addedMouse || demoState.count >= 2) return;
-        demoState.addedMouse = true;
+      surface.querySelector('[data-action="add-assertion"]').addEventListener("click", () => {
+        if (demoState.addedAssertion || demoState.count >= 2) return;
+        demoState.addedAssertion = true;
+        demoState.count += 1;
+        renderDemo();
+      });
+      surface.querySelector('[data-action="add-debug"]').addEventListener("click", () => {
+        if (demoState.addedDebug || demoState.count >= 2) return;
+        demoState.addedDebug = true;
         demoState.count += 1;
         renderDemo();
       });
     },
-    hints: ["Clicked Add keyboard", "Clicked Add mouse", "Read data-testid cart-count", "Expected text: 2 items"]
+    hints: ["Clicked Add locator practice", "Clicked Add assertion practice", "Read data-testid session-count", "Expected text: 2 exercises"]
   },
   {
     title: "Wait for UI Changes",
@@ -424,20 +458,21 @@ test('updates the cart count', async ({ page }) => {
       "Click a delayed action and let Playwright wait until the final result appears.",
     goal: "Let Playwright wait for the final visible state instead of adding manual timeouts.",
     userAction:
-      "The user clicks Generate report and waits until the status changes from Generating to Report ready.",
+      "The user clicks Generate progress report and waits until the status changes from Generating to Report ready.",
     playwrightAction:
       "The code clicks the button and lets Playwright wait for the final text to become visible.",
     successCheck:
-      "Run test should pass only after Report ready appears.",
+      "First generate the report manually. Then run the automation and watch Playwright wait until Report ready appears.",
     conceptTitle: "Playwright waits like a patient user",
     conceptBody: [
-      { label: "Action", value: "Generate report", note: "Starts a delayed UI change." },
+      { label: "Action", value: "Generate progress report", note: "Starts a delayed UI change." },
       { label: "Wait", value: "auto-wait", note: "Playwright waits through the loading state." },
+      { label: "Assertion", value: "toBeVisible()", note: "Checks that the final visible text appears." },
       { label: "Result", value: "Report ready", note: "The final visible text to verify." }
     ],
     conceptCode: "expect(page.getByText('Report ready')).toBeVisible()",
     demoPath: "/reports",
-    demoTitle: "Async report",
+    demoTitle: "Progress report",
     tasks: [
       "Click the button that starts loading.",
       "Notice the temporary loading state.",
@@ -445,18 +480,18 @@ test('updates the cart count', async ({ page }) => {
     ],
     code: `import { test, expect } from '@playwright/test';
 
-test('generates the weekly report', async ({ page }) => {
+test('generates the progress report', async ({ page }) => {
   await page.goto('/reports');
 
-  await page.getByRole('button', { name: 'Generate report' }).click();
+  await page.getByRole('button', { name: 'Generate progress report' }).click();
 
   await expect(page.getByText('Report ready')).toBeVisible();
 });`,
     codeTips: {
       "await page.goto('/reports');":
         "A real test opens /reports from a fresh page.",
-      "await page.getByRole('button', { name: 'Generate report' }).click();":
-        "Start the async report generation.",
+      "await page.getByRole('button', { name: 'Generate progress report' }).click();":
+        "Start the async progress report generation.",
       "await expect(page.getByText('Report ready')).toBeVisible();":
         "Wait for the final visible message instead of using a fixed timeout."
     },
@@ -464,8 +499,8 @@ test('generates the weekly report', async ({ page }) => {
     resultSteps: [
       { text: "Test opens /reports", codeLine: "await page.goto('/reports');" },
       {
-        text: "Clicked Generate report",
-        codeLine: "await page.getByRole('button', { name: 'Generate report' }).click();",
+        text: "Clicked Generate progress report",
+        codeLine: "await page.getByRole('button', { name: 'Generate progress report' }).click();",
         apply: state => ({ ...state, status: "loading" })
       },
       {
@@ -479,10 +514,10 @@ test('generates the weekly report', async ({ page }) => {
         <span class="status-pill ${state.status === "ready" ? "success" : ""}">
           ${state.status === "ready" ? "Report ready" : state.status === "loading" ? "Generating" : "Idle"}
         </span>
-        <h3>Weekly report</h3>
-        <p>The report needs a moment before the final state appears.</p>
+        <h3>Training progress report</h3>
+        <p>The portal needs a moment before the final report state appears.</p>
         <button class="demo-button" data-action="generate" ${state.status === "loading" ? "disabled" : ""}>
-          Generate report
+          Generate progress report
         </button>
       </article>`,
     bind: surface => {
@@ -498,7 +533,7 @@ test('generates the weekly report', async ({ page }) => {
       });
     },
     validate: state => state.status === "ready",
-    hints: ["Clicked Generate report", "Waited for visible final state", "Found visible text: Report ready"]
+    hints: ["Clicked Generate progress report", "Waited for visible final state", "Found visible text: Report ready"]
   },
   {
     title: "Debug a Broken Test",
@@ -508,20 +543,21 @@ test('generates the weekly report', async ({ page }) => {
       "Read the failed state, add the missing action, and verify the fixed result.",
     goal: "Use the runner output to spot the missing action and fix the scenario.",
     userAction:
-      "The user first presses Run test to see the missing state. Then the user clicks Enable release alerts and runs it again.",
+      "The user first presses Run test to see the missing state. Then the user clicks Enable progress alerts and runs it again.",
     playwrightAction:
       "The code performs the missing click and expects the enabled message to appear.",
     successCheck:
-      "Run test should pass when Release alerts enabled is visible.",
+      "First notice the off state manually. Then run the automation and watch the missing setup click enable Progress alerts.",
     conceptTitle: "Debugging means reading the missing state",
     conceptBody: [
       { label: "Failure clue", value: "text missing", note: "The expected result did not appear." },
-      { label: "Missing action", value: "click alerts", note: "The test must enable the setting first." },
-      { label: "Proof", value: "enabled text", note: "The final message confirms the fix." }
+      { label: "Locator", value: "getByRole()", note: "Finds the missing setup button by role and name." },
+      { label: "Missing action", value: "click alerts", note: "The test must enable the portal setting first." },
+      { label: "Assertion", value: "toBeVisible()", note: "Confirms the enabled message appears." }
     ],
-    conceptCode: "expect(page.getByText('Release alerts enabled')).toBeVisible()",
+    conceptCode: "expect(page.getByText('Progress alerts enabled')).toBeVisible()",
     demoPath: "/settings",
-    demoTitle: "Notification settings",
+    demoTitle: "Portal settings",
     tasks: [
       "Try running the test before enabling notifications.",
       "Turn on the setting in the demo app.",
@@ -529,45 +565,45 @@ test('generates the weekly report', async ({ page }) => {
     ],
     code: `import { test, expect } from '@playwright/test';
 
-test('enables release notifications', async ({ page }) => {
+test('enables progress notifications', async ({ page }) => {
   await page.goto('/settings');
 
   await page
-    .getByRole('button', { name: 'Enable release alerts' })
+    .getByRole('button', { name: 'Enable progress alerts' })
     .click();
 
-  await expect(page.getByText('Release alerts enabled')).toBeVisible();
+  await expect(page.getByText('Progress alerts enabled')).toBeVisible();
 });`,
     codeTips: {
       "await page.goto('/settings');":
         "A real test opens /settings from a fresh page.",
-      ".getByRole('button', { name: 'Enable release alerts' })":
+      ".getByRole('button', { name: 'Enable progress alerts' })":
         "Find the exact settings button by role and name.",
       ".click();":
         "Perform the missing action.",
-      "await expect(page.getByText('Release alerts enabled')).toBeVisible();":
+      "await expect(page.getByText('Progress alerts enabled')).toBeVisible();":
         "Confirm the enabled message appears."
     },
     initial: () => ({ enabled: false }),
     resultSteps: [
       { text: "Test opens /settings", codeLine: "await page.goto('/settings');" },
-      { text: "Located Enable release alerts button", codeLine: ".getByRole('button', { name: 'Enable release alerts' })" },
+      { text: "Located Enable progress alerts button", codeLine: ".getByRole('button', { name: 'Enable progress alerts' })" },
       {
         text: "Clicked the selected locator",
         codeLine: ".click();",
         apply: state => ({ ...state, enabled: true })
       },
-      { text: "Found visible text: Release alerts enabled", codeLine: "await expect(page.getByText('Release alerts enabled')).toBeVisible();" }
+      { text: "Found visible text: Progress alerts enabled", codeLine: "await expect(page.getByText('Progress alerts enabled')).toBeVisible();" }
     ],
     render: state => `
       <article class="demo-card">
         <span class="status-pill ${state.enabled ? "success" : ""}">
-          ${state.enabled ? "Release alerts enabled" : "Release alerts off"}
+          ${state.enabled ? "Progress alerts enabled" : "Progress alerts off"}
         </span>
-        <h3>Notification settings</h3>
-        <p>Use this screen to practice reading a failing test and fixing the page state.</p>
-        <button class="demo-button" data-action="enable-alerts">Enable release alerts</button>
-        ${state.enabled ? '<div class="toast">Release alerts enabled</div>' : ""}
+        <h3>Portal settings</h3>
+        <p>Use this screen to practice reading a failing test and fixing the portal state.</p>
+        <button class="demo-button" data-action="enable-alerts">Enable progress alerts</button>
+        ${state.enabled ? '<div class="toast">Progress alerts enabled</div>' : ""}
       </article>`,
     bind: surface => {
       surface.querySelector('[data-action="enable-alerts"]').addEventListener("click", () => {
@@ -576,7 +612,7 @@ test('enables release notifications', async ({ page }) => {
       });
     },
     validate: state => state.enabled,
-    hints: ["Clicked Enable release alerts", "Found toast text", "Trace would show the completed action"]
+    hints: ["Clicked Enable progress alerts", "Found toast text", "Trace would show the completed action"]
   }
 ];
 
@@ -590,6 +626,7 @@ const lessonList = document.querySelector("#lesson-list");
 const lessonStep = document.querySelector("#lesson-step");
 const lessonTime = document.querySelector("#lesson-time");
 const lessonTitle = document.querySelector("#lesson-title");
+const lessonSubtitle = document.querySelector("#lesson-subtitle");
 const lessonSummary = document.querySelector("#lesson-summary");
 const lessonGoal = document.querySelector("#lesson-goal");
 const userAction = document.querySelector("#user-action");
@@ -599,8 +636,11 @@ const conceptTitle = document.querySelector("#concept-title");
 const conceptBody = document.querySelector("#concept-body");
 const taskList = document.querySelector("#task-list");
 const demoTitle = document.querySelector("#demo-title");
+const demoSubtitle = document.querySelector("#demo-subtitle");
 const demoAddress = document.querySelector("#demo-address");
 const demoSurface = document.querySelector("#demo-surface");
+const codeTitle = document.querySelector("#code-title");
+const codeSubtitle = document.querySelector("#code-subtitle");
 const codeExample = document.querySelector("#code-example");
 const runnerStatus = document.querySelector("#runner-status");
 const runnerLog = document.querySelector("#runner-log");
@@ -614,6 +654,7 @@ const pageScrollbarThumb = document.querySelector("#page-scrollbar-thumb");
 
 let exampleAnimationId = 0;
 let exampleRunning = false;
+let examplePaused = false;
 
 const storedTheme = localStorage.getItem("playwright-lab-theme");
 const initialTheme = storedTheme === "light" ? "light" : "dark";
@@ -678,6 +719,69 @@ function renderConceptBody(content) {
   return `<p>${escapeHtml(content)}</p>`;
 }
 
+function getConceptDisplayName(lesson) {
+  const labels = {
+    getByRole: "getByRole()",
+    getByLabel: "getByLabel()",
+    "role + name": "getByRole({ name })",
+    expect: "expect()",
+    "auto-wait": "Auto-wait",
+    debugging: "Debugging"
+  };
+
+  return labels[lesson.short] || lesson.short;
+}
+
+function getTechniqueLabel(lesson) {
+  const labels = {
+    getByRole: "Using locators",
+    getByLabel: "Using locators",
+    "role + name": "Using locators",
+    expect: "Using assertions",
+    "auto-wait": "Using auto-wait",
+    debugging: "Using locators and assertions"
+  };
+
+  return labels[lesson.short] || "Using Playwright";
+}
+
+function getConceptType(lesson) {
+  const labels = {
+    getByRole: "Locator",
+    getByLabel: "Locator",
+    "role + name": "Locator",
+    expect: "Assertion",
+    "auto-wait": "Auto-wait",
+    debugging: "Debugging"
+  };
+
+  return labels[lesson.short] || "Concept";
+}
+
+function getConceptSubtitle(lesson) {
+  const conceptName = getConceptDisplayName(lesson);
+  const labels = {
+    "auto-wait": "Built-in waiting",
+    debugging: "Trace and runner output"
+  };
+
+  return labels[lesson.short] || conceptName;
+}
+
+function getCodePanelTitle(lesson) {
+  const conceptName = getConceptDisplayName(lesson);
+  const labels = {
+    getByRole: `${conceptName} locator`,
+    getByLabel: `${conceptName} locator`,
+    "role + name": `${conceptName} locator`,
+    expect: `${conceptName} assertion`,
+    "auto-wait": "Auto-wait behavior",
+    debugging: "Debugging workflow"
+  };
+
+  return labels[lesson.short] || conceptName;
+}
+
 function renderCodeWithTips(code, tips) {
   const lines = code
     .split("\n")
@@ -723,18 +827,30 @@ function setLesson(index) {
 
 function renderLessonList() {
   const exampleButton = `
-    <button class="lesson-button example-button" id="example-button" type="button" aria-pressed="${exampleRunning}">
-      <span class="example-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="m8 5 11 7-11 7V5Z"></path>
-        </svg>
-      </span>
+    <div class="lesson-button example-button" id="example-button" aria-label="Automated preview controls">
       <span>
         <strong>Example</strong>
         <span>Automated preview</span>
       </span>
-      <span class="example-state">${exampleRunning ? "Stop" : "Start"}</span>
-    </button>
+      <span class="example-controls" aria-label="Automated preview controls">
+        <button class="example-control" id="example-play" type="button" aria-label="${exampleRunning && examplePaused ? "Resume automated preview" : "Start automated preview"}" ${exampleRunning && !examplePaused ? "disabled" : ""}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m8 5 11 7-11 7V5Z"></path>
+          </svg>
+        </button>
+        <button class="example-control" id="example-pause" type="button" aria-label="Pause automated preview" ${!exampleRunning || examplePaused ? "disabled" : ""}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14"></path>
+            <path d="M16 5v14"></path>
+          </svg>
+        </button>
+        <button class="example-control" id="example-stop" type="button" aria-label="Stop automated preview" ${!exampleRunning ? "disabled" : ""}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 7h10v10H7z"></path>
+          </svg>
+        </button>
+      </span>
+    </div>
   `;
 
   lessonList.innerHTML = exampleButton + lessons
@@ -753,31 +869,45 @@ function renderLessonList() {
     button.addEventListener("click", () => setLesson(Number(button.dataset.lesson)));
   });
 
-  document.querySelector("#example-button").addEventListener("click", () => {
-    if (exampleRunning) {
-      stopExampleAutomation();
-    } else {
-      runExampleAutomation();
+  document.querySelector("#example-play").addEventListener("click", () => {
+    if (exampleRunning && examplePaused) {
+      resumeExampleAutomation();
+      return;
     }
+    runExampleAutomation();
+  });
+
+  document.querySelector("#example-pause").addEventListener("click", pauseExampleAutomation);
+  document.querySelector("#example-stop").addEventListener("click", () => {
+    stopExampleAutomation();
   });
 }
 
 function renderLesson() {
   const lesson = lessons[activeLessonIndex];
+  const conceptName = getConceptDisplayName(lesson);
+  const techniqueLabel = getTechniqueLabel(lesson);
+  const conceptType = getConceptType(lesson);
+  const conceptSubtitle = getConceptSubtitle(lesson);
+  const learningTitle = `${lesson.title} - ${techniqueLabel}`;
 
   renderLessonList();
   lessonStep.textContent = `Step ${activeLessonIndex + 1} of ${lessons.length}`;
   lessonTime.textContent = lesson.time;
   lessonTitle.textContent = lesson.title;
+  lessonSubtitle.textContent = `${conceptType}: ${conceptSubtitle}`;
   lessonSummary.textContent = lesson.summary;
   lessonGoal.textContent = lesson.goal;
   userAction.textContent = lesson.userAction;
   playwrightAction.textContent = lesson.playwrightAction;
-  successCheck.textContent = "Start with a manual test, then click Run test to follow the automation test.";
+  successCheck.textContent = lesson.successCheck;
   conceptTitle.textContent = lesson.conceptCode;
   conceptBody.innerHTML = renderConceptBody(lesson.conceptBody);
-  demoTitle.textContent = lesson.demoTitle;
+  demoTitle.textContent = lesson.title;
+  demoSubtitle.textContent = `${techniqueLabel} - ${conceptType}: ${conceptSubtitle}`;
   demoAddress.textContent = `https://demo.playwright-lab.test${lesson.demoPath}`;
+  codeTitle.textContent = "Automation code";
+  codeSubtitle.textContent = `${getCodePanelTitle(lesson)} for ${lesson.title}`;
   scenarioToggle.hidden = !lesson.scenarios;
   if (lesson.scenarios) {
     scenarioToggle.querySelectorAll("[data-scenario]").forEach(button => {
@@ -858,6 +988,28 @@ function sleep(ms) {
   return new Promise(resolve => window.setTimeout(resolve, ms));
 }
 
+async function sleepWithExamplePause(ms, runAnimation) {
+  if (!exampleRunning) {
+    await sleep(ms);
+    return runAnimationId === runAnimation;
+  }
+
+  let elapsed = 0;
+  const interval = 100;
+  while (elapsed < ms) {
+    if (runAnimationId !== runAnimation) return false;
+    if (examplePaused) {
+      await sleep(interval);
+      continue;
+    }
+    const step = Math.min(interval, ms - elapsed);
+    await sleep(step);
+    elapsed += step;
+  }
+
+  return runAnimationId === runAnimation;
+}
+
 function updatePageScrollbar() {
   const scrollContainer = document.querySelector(".workspace");
   const scrollable = scrollContainer.scrollHeight - scrollContainer.clientHeight;
@@ -875,10 +1027,11 @@ function updatePageScrollbar() {
   pageScrollbarThumb.style.transform = `translateY(${maxThumbTravel * scrollProgress}px)`;
 }
 
-function scrollElementBy(element, amount) {
-  const previousTop = element.scrollTop;
-  element.scrollTop += amount;
-  return element.scrollTop !== previousTop;
+function scrollElementBy(element, amount, axis = "top") {
+  const property = axis === "left" ? "scrollLeft" : "scrollTop";
+  const previousValue = element[property];
+  element[property] += amount;
+  return element[property] !== previousValue;
 }
 
 function handlePageWheel(event) {
@@ -892,6 +1045,13 @@ function handlePageWheel(event) {
   }
 
   const workspace = document.querySelector(".workspace");
+  const shouldScrollHorizontally = event.shiftKey && workspace.scrollWidth > workspace.clientWidth;
+  if (shouldScrollHorizontally && scrollElementBy(workspace, event.deltaY, "left")) {
+    event.preventDefault();
+    updatePageScrollbar();
+    return;
+  }
+
   if (workspace.scrollHeight > workspace.clientHeight && scrollElementBy(workspace, event.deltaY)) {
     event.preventDefault();
     updatePageScrollbar();
@@ -918,7 +1078,9 @@ function resetTemporaryDemoResult() {
   }
 
   if (demoState.submitted) {
-    demoState = { ...demoState, submitted: false };
+    demoState = "user" in demoState && "password" in demoState
+      ? lessons[activeLessonIndex].initial()
+      : { ...demoState, submitted: false };
     renderDemo();
   }
 }
@@ -957,6 +1119,7 @@ async function runTest() {
   const steps = getLessonRunnerSteps(lesson);
 
   for (let index = 0; index < steps.length; index += 1) {
+    if (!await sleepWithExamplePause(0, animationId)) return;
     if (runAnimationId !== animationId) return;
     const step = steps[index];
     if (step.apply) {
@@ -964,7 +1127,7 @@ async function runTest() {
       renderDemo();
     }
     highlightTraceStep(index, "complete");
-    await sleep(delay);
+    if (!await sleepWithExamplePause(delay, animationId)) return;
   }
 
   if (runAnimationId !== animationId) return;
@@ -1005,12 +1168,15 @@ function showAutomationClickPulse(target) {
 }
 
 async function automationClick(target, animationId) {
+  if (!await waitWhileExamplePaused(animationId)) return false;
   if (exampleAnimationId !== animationId) return false;
   target.scrollIntoView({ block: "center", behavior: "smooth" });
   await sleep(300);
+  if (!await waitWhileExamplePaused(animationId)) return false;
   if (exampleAnimationId !== animationId) return false;
   moveAutomationCursorTo(target);
   await sleep(1000);
+  if (!await waitWhileExamplePaused(animationId)) return false;
   if (exampleAnimationId !== animationId) return false;
   automationCursor.classList.add("is-clicking");
   target.classList.add("is-auto-clicking");
@@ -1024,9 +1190,30 @@ async function automationClick(target, animationId) {
   return exampleAnimationId === animationId;
 }
 
+async function waitWhileExamplePaused(animationId) {
+  while (exampleAnimationId === animationId && examplePaused) {
+    await sleep(150);
+  }
+  return exampleAnimationId === animationId;
+}
+
+function pauseExampleAutomation() {
+  if (!exampleRunning) return;
+  examplePaused = true;
+  automationCursor.classList.remove("is-clicking");
+  renderLessonList();
+}
+
+function resumeExampleAutomation() {
+  if (!exampleRunning) return;
+  examplePaused = false;
+  renderLessonList();
+}
+
 function stopExampleAutomation({ preserveRunner = false } = {}) {
   exampleAnimationId += 1;
   exampleRunning = false;
+  examplePaused = false;
   automationCursor.classList.remove("is-visible", "is-clicking");
   if (preserveRunner) {
     runTestButton.disabled = false;
@@ -1038,6 +1225,7 @@ function stopExampleAutomation({ preserveRunner = false } = {}) {
 
 async function waitForRunnerPassed(animationId) {
   while (exampleAnimationId === animationId && runnerStatus.textContent !== "Passed") {
+    if (!await waitWhileExamplePaused(animationId)) return false;
     await sleep(200);
   }
   return exampleAnimationId === animationId;
@@ -1047,10 +1235,12 @@ async function runExampleAutomation() {
   const animationId = exampleAnimationId + 1;
   exampleAnimationId = animationId;
   exampleRunning = true;
+  examplePaused = false;
   renderLessonList();
   automationCursor.classList.add("is-visible");
 
   for (let index = 0; index < lessons.length; index += 1) {
+    if (!await waitWhileExamplePaused(animationId)) return;
     if (exampleAnimationId !== animationId) return;
     if (index === 3) {
       lesson4Scenario = "pass";
@@ -1059,6 +1249,7 @@ async function runExampleAutomation() {
     if (!await automationClick(lessonButton, animationId)) return;
 
     await sleep(350);
+    if (!await waitWhileExamplePaused(animationId)) return;
     if (exampleAnimationId !== animationId) return;
     if (!await automationClick(runTestButton, animationId)) return;
     if (!await waitForRunnerPassed(animationId)) return;

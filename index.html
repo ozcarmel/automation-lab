@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Playwright Lab</title>
-    <link rel="stylesheet" href="styles.css?v=50">
+    <link rel="stylesheet" href="styles.css?v=69">
   </head>
   <body>
     <a class="skip-link" href="#lesson-title">Skip to lesson</a>
@@ -49,6 +49,7 @@
             <div>
               <span class="section-kicker">Current lesson</span>
               <h1 id="lesson-title"></h1>
+              <p class="lesson-subtitle" id="lesson-subtitle"></p>
             </div>
             <div class="lesson-meta">
               <span id="lesson-step"></span>
@@ -68,18 +69,18 @@
           </div>
 
           <div class="practice-box" aria-labelledby="practice-title">
-            <h2 id="practice-title">Human Tester Vs Automation Framework</h2>
+            <h2 id="practice-title">Human Tester vs Automation Framework</h2>
             <div class="practice-steps">
               <div>
-                <span class="step-label">1. Manual</span>
+                <span class="step-label">1. Manual test</span>
                 <p id="user-action"></p>
               </div>
               <div>
-                <span class="step-label">2. Automation</span>
+                <span class="step-label">2. Automation test</span>
                 <p id="playwright-action"></p>
               </div>
               <div>
-                <span class="step-label">3. Hands-on both!</span>
+                <span class="step-label">3. Practice flow</span>
                 <p id="success-check"></p>
               </div>
             </div>
@@ -91,6 +92,7 @@
                 <div>
                   <span class="eyebrow">Demo App</span>
                   <h2 id="demo-title"></h2>
+                  <p class="panel-subtitle" id="demo-subtitle"></p>
                 </div>
                 <button class="icon-button has-control-tooltip" id="reset-demo" type="button" aria-label="Re-run test">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -116,7 +118,8 @@
               <div class="panel-header">
                 <div>
                   <span class="eyebrow">Playwright Test</span>
-                  <h2>Automation code</h2>
+                  <h2 id="code-title"></h2>
+                  <p class="panel-subtitle" id="code-subtitle"></p>
                 </div>
                 <button class="primary-button" id="run-test" type="button">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -126,8 +129,8 @@
                 </button>
               </div>
               <div class="scenario-toggle" id="scenario-toggle" aria-label="Lesson 4 scenario">
-                <button type="button" data-scenario="pass" aria-pressed="false">Pass: 2 items</button>
-                <button type="button" data-scenario="fail" aria-pressed="true">Fail: 1 item</button>
+                <button type="button" data-scenario="pass" aria-pressed="false">Pass: 2 exercises</button>
+                <button type="button" data-scenario="fail" aria-pressed="true">Fail: 1 exercise</button>
               </div>
 
               <div class="test-visualizer">
@@ -144,12 +147,16 @@
             </aside>
           </div>
 
-          <div class="concept-box" aria-labelledby="concept-title">
+          <div class="concept-box" aria-labelledby="concept-section-title">
+            <h2 class="section-title" id="concept-section-title">Playwright Concepts</h2>
             <h2 id="concept-title"></h2>
             <p id="concept-body"></p>
           </div>
 
-          <ol class="task-list" id="task-list"></ol>
+          <section class="task-section" aria-labelledby="task-section-title">
+            <h2 class="section-title" id="task-section-title">Practice checklist</h2>
+            <ol class="task-list" id="task-list"></ol>
+          </section>
         </section>
       </main>
     </div>
@@ -168,6 +175,6 @@
       <div class="page-scrollbar-thumb" id="page-scrollbar-thumb"></div>
     </div>
 
-    <script src="app.js?v=50"></script>
+    <script src="app.js?v=69"></script>
   </body>
 </html>
